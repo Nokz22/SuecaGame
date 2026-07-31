@@ -1,0 +1,52 @@
+name: Build
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Correr testes
+        run: mvn -B clean test
+
+  package:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Construir um JAR executável por plataforma
+        run: |
+          mkdir -p dist
+          for platform in linux win mac mac-aarch64; do
+            mvn -B -q clean package -DskipTests -Djavafx.platform=$platform
+            cp target/SuecaGame.jar "dist/SuecaGame-$platform.jar"
+          done
+          ls -lh dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SuecaGame-jars
+          path: dist/*.jar
+      - name: Publicar release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.jar
+          generate_release_notes: true

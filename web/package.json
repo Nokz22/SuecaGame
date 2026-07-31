@@ -1,0 +1,10 @@
+{
+  "name": "suecagame-web",
+  "version": "1.0.0",
+  "description": "Sueca no browser — versão web do SuecaGame",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node test/selfplay.mjs"
+  }
+}

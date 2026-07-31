@@ -1,136 +1,155 @@
-# ♠ SuecaGame ♥
+# Sueca
 
 [![Build](https://github.com/Nokz22/SuecaGame/actions/workflows/build.yml/badge.svg)](https://github.com/Nokz22/SuecaGame/actions/workflows/build.yml)
 
-Jogo de **Sueca** — o clássico jogo de cartas português — em Java, com interface gráfica JavaFX,
-modo **single player** contra bots e **multiplayer em rede local (LAN)** até 4 jogadores.
+Sueca is the card game you'll find in just about every Portuguese café: four
+players, two teams, a 40-card deck, and endless arguments about who wasted a
+trump. This is a full implementation of the game in Java, with a JavaFX
+interface, bots to play against, and LAN multiplayer for up to four people.
+There's also a browser version in [`web/`](web/) that runs entirely
+client-side, so you can play without installing anything.
 
-| Menu | Mesa de jogo |
+**[▶ Play in the browser](https://nokz22.github.io/SuecaGame/)** ·
+**[⬇ Download for desktop](https://github.com/Nokz22/SuecaGame/releases)**
+
+| Menu | Game table |
 |---|---|
-| ![Menu](docs/screenshot-menu.png) | ![Mesa de jogo](docs/screenshot-game.png) |
+| ![Menu](docs/screenshot-menu.png) | ![Game table](docs/screenshot-game.png) |
 
-## Funcionalidades
+## Never played Sueca?
 
-- **Single player** — jogas contra 3 bots com heurísticas de Sueca (assistem ao naipe, cortam,
-  carregam a vaza quando o parceiro vai a ganhar).
-- **Multiplayer LAN** — um jogador cria o jogo (servidor embebido) e os outros entram com o IP
-  do anfitrião. Lugares vazios são preenchidos por bots; se um jogador cair a meio, um bot
-  assume o lugar e o jogo continua.
-- **Regras completas de Sueca** — obrigação de assistir ao naipe, trunfo, 10 vazas por ronda,
-  120 pontos em jogo, pontuação por ronda (61–90 → 1 jogo, 91–119 → 2 jogos, 120 → 4 jogos
-  de capote) e partida à melhor de 4 jogos.
-- **Duas interfaces** — JavaFX (gráfica) e consola (com modo `--demo` totalmente automático).
+The short version: each player gets 10 cards and one suit is trump. You must
+follow the lead suit whenever you can. The trick goes to the highest trump
+played, or to the highest card of the lead suit if nobody trumped. Aces are
+worth 11 points, sevens 10, kings 4, jacks 3, queens 2 — 120 points on the
+table every round. Your team needs 61 of them to score a game point; 91 or
+more is worth two, and sweeping all 120 (a *capote*) is worth four. First
+team to reach 4 game points wins the match.
 
-## Como jogar
+## Features
 
-### Sem instalar nada (só Java 21+)
+- **Single player** against three bots. They're not random: they follow suit,
+  cut with trump when they're out, win tricks as cheaply as possible, and pile
+  points onto a trick their partner is already winning.
+- **LAN multiplayer** for up to 4 players. One player hosts (the server runs
+  embedded in the app), the rest join with the host's IP. Empty seats are
+  filled with bots, and if someone disconnects mid-game a bot takes over so
+  the match can finish.
+- **Full rules**: mandatory follow-suit, trump, 10 tricks per round,
+  the 1/2/4 scoring ladder and matches to 4 game points.
+- A **console version** as well, with a `--demo` mode where four bots play a
+  complete match on their own — handy for watching the engine work.
 
-Descarrega o JAR do teu sistema na página de
-[**Releases**](https://github.com/Nokz22/SuecaGame/releases) —
+## Getting it running
+
+### Just play
+
+Grab the JAR for your system from the
+[releases page](https://github.com/Nokz22/SuecaGame/releases) —
 `SuecaGame-win.jar`, `SuecaGame-mac.jar` (Intel), `SuecaGame-mac-aarch64.jar`
-(Apple Silicon) ou `SuecaGame-linux.jar` — e abre-o com duplo clique ou:
+(Apple Silicon) or `SuecaGame-linux.jar` — and double-click it, or run:
 
 ```bash
 java -jar SuecaGame-win.jar
 ```
 
-O JavaFX já vai dentro do JAR; não é preciso instalar mais nada.
+JavaFX is bundled inside the JAR. The only requirement is Java 21 or newer.
 
-### A partir do código
+### From source
 
-Requisitos: **Java 21+** e **Maven**.
+You'll need Java 21+ and Maven:
 
 ```bash
-# Interface gráfica (JavaFX)
-mvn javafx:run
-
-# Versão de consola (single player)
-mvn compile exec:java
-
-# Demo automática na consola (4 bots jogam uma partida completa)
-mvn compile exec:java -Dexec.args="--demo"
-
-# Testes
-mvn test
+mvn javafx:run                              # desktop app
+mvn compile exec:java                       # console version
+mvn compile exec:java -Dexec.args="--demo"  # four bots play a full match
+mvn test                                    # test suite
 ```
 
-**Multiplayer LAN:** o anfitrião escolhe *Criar Jogo LAN* (porta 5555 por omissão) e partilha
-o seu IP local; os restantes escolhem *Entrar em Jogo LAN* com esse IP. Quando o anfitrião
-carrega em *Começar Jogo*, os lugares por ocupar passam a bots.
+### Playing over LAN
 
-## Arquitetura
+The host picks *Criar Jogo LAN* (default port 5555) and shares their local
+IP; everyone else picks *Entrar em Jogo LAN* and types it in. When the host
+presses start, any seat still empty becomes a bot. If the connection is
+refused, it's almost always the host's firewall — allow Java through on that
+port.
 
-MVC reforçado com camadas de serviço, eventos e rede — o domínio (`model`) não depende
-de nada; a UI nunca decide regras, apenas reage a eventos do motor.
+## The browser version
+
+The [`web/`](web/) folder has a JavaScript remake of the game — same rules,
+same bot heuristics — with no build step and no dependencies: plain ES
+modules, CSS-drawn cards and an azulejo-tiled table. It deploys to GitHub
+Pages automatically on every push to `main`.
+
+![Browser version](docs/screenshot-web.png)
+
+Two handy URLs: `?jogar=Name` skips the menu straight to the table, and
+`?demo` puts bots in all four seats so you can just watch a match play out.
+
+The web engine has its own self-play harness (`node web/test/selfplay.mjs`)
+that plays 300 complete matches and asserts the same invariants as the Java
+suite: ten tricks and exactly 120 points, every round, plus the full scoring
+ladder.
+
+## How it's built
+
+The core idea is that the game engine is the only thing that knows the rules,
+and everything else just reacts to it. The domain model has no dependencies,
+the UI never decides anything (it only pre-validates plays so illegal cards
+appear disabled), and in multiplayer the server is authoritative: each client
+receives its own hand and nothing else, and never picks its own seat.
 
 ```mermaid
 graph TD
-    UI["ui — JavaFX e consola"] --> CTRL["controller — GameSession (local/remota) + GameRules"]
+    UI["ui — JavaFX + console"] --> CTRL["controller — GameSession (local/remote) + GameRules"]
     CTRL --> NET["network — SuecaServer, SuecaClient, Protocol"]
-    CTRL --> SVC["service — GameService (motor) + estados + IA dos bots"]
-    NET --> CMD["commands — ações dos jogadores"]
+    CTRL --> SVC["service — GameService + game states + bot AI"]
+    NET --> CMD["commands — player actions"]
     CMD --> SVC
     SVC --> EV["events — GameEvent (Observer)"]
     SVC --> MODEL["model — Card, Deck, Trick, Game, Team, Player"]
-    EV -.notifica.-> UI
-    EV -.notifica.-> NET
+    EV -.notifies.-> UI
+    EV -.notifies.-> NET
 ```
 
-### Padrões de design
+A few decisions worth explaining:
 
-| Padrão | Onde | Porquê |
-|---|---|---|
-| **Observer** | `events.GameEvent` / `GameEventListener` | O motor emite eventos; UI e servidor reagem sem acoplamento. O servidor reencaminha os eventos aos clientes pela rede. |
-| **State** | `service.*State` (espera → distribuição → jogada → contagem → fim) | Cada fase define o que é permitido; elimina ifs de fase espalhados pelo código. |
-| **Factory** | `model.DeckFactory`, `commands.CommandFactory` | Criação do baralho de 40 cartas e construção de comandos a partir das mensagens de rede. |
-| **Command** | `commands.PlayCardCommand`, `StartGameCommand` | Ações dos jogadores serializáveis pela rede, executadas pelo servidor. |
-| **Strategy** | `service.ai.BotStrategy` / `SmartBotStrategy` | A IA dos bots é substituível sem tocar no motor. |
+- **One session abstraction.** The UI talks to a `GameSession` and genuinely
+  doesn't know whether the game is in-process against bots or across the
+  network — single player and multiplayer share the same game screen.
+- **Events as a sealed interface.** Every game event is a record implementing
+  `GameEvent`, so the compiler forces exhaustive handling everywhere events
+  are consumed (UI, network protocol, server). Adding an event type breaks
+  the build until every consumer deals with it, which is exactly what I want.
+- **Game phases as classes** (waiting, dealing, playing, scoring, game over).
+  Each phase defines what's allowed in it, which keeps phase checks from
+  leaking all over the service.
+- **A line-based text protocol.** Cards serialize as `COPAS:ÀS`, events as
+  simple pipe-separated lines. You can debug a game with `nc`. No
+  serialization libraries, nothing to version.
+- **A seeded `Random` in the engine.** Tests can play entire rounds
+  deterministically — the suite includes full bot-vs-bot rounds that must
+  come out to exactly 10 tricks and 120 points.
 
-### Decisões técnicas
+The deck factory, the command parsing for network messages and the pluggable
+bot strategy are the usual Factory / Command / Strategy suspects; the event
+system is a plain Observer.
 
-- **Servidor autoritativo** — no multiplayer, só o servidor tem o estado do jogo. Cada cliente
-  recebe apenas a própria mão e nunca escolhe o próprio lugar; validação de jogadas é sempre
-  feita no motor. A UI apenas pré-valida para desativar cartas ilegais.
-- **Uma única abstração de sessão** — a UI fala com `GameSession` e não sabe se o jogo é local
-  (contra bots) ou remoto: o single player e o multiplayer partilham o mesmo ecrã de jogo.
-- **Protocolo de texto por linhas** — simples de depurar com `telnet`/`nc`, sem dependências
-  de serialização. Eventos e cartas têm codificação estável (`COPAS:ÀS`).
-- **Eventos como `sealed interface` + `records`** — o compilador garante switch exaustivo
-  em todos os pontos que tratam eventos (UI, protocolo, servidor).
-- **Concorrência contida** — o motor sincroniza as ações; no JavaFX todos os eventos passam
-  por `Platform.runLater`, preservando a ordem e mantendo a UI fora das threads de rede.
-- **Motor determinístico nos testes** — o `GameService` aceita um `Random` com seed, o que
-  permite testar rondas completas (10 vazas, 120 pontos) de forma reprodutível.
+## Tests
 
-## Testes
+`mvn test` runs 30 unit and integration tests:
 
-30 testes unitários e de integração (`mvn test`):
+- deck invariants (40 unique cards, 120 points total), tricks and lead suit;
+- rules: follow-suit enforcement, trick winners with and without trump, and
+  every scoring boundary (60/61/90/91/119/120);
+- engine: complete bot-played rounds, match end at 4 game points, playing out
+  of turn and revoking both rejected;
+- network: protocol round-trips, plus a real socket test that boots a server,
+  connects a client and checks it gets seated and dealt exactly its own hand.
 
-- **model** — baralho de 40 cartas únicas com 120 pontos; vazas e naipe de saída.
-- **controller** — regras: assistir ao naipe, vencedor com/sem trunfo, fronteiras da pontuação
-  (60/61/90/91/119/120).
-- **service** — rondas completas jogadas por bots (10 vazas, 120 pontos), fim de partida aos
-  4 jogos, jogadas fora de vez e renúncias rejeitadas.
-- **network** — round-trip do protocolo e teste de integração com servidor e cliente reais
-  ligados por socket, do `JOIN` até às cartas na mão.
+## Ideas for later
 
-## Estrutura
-
-```
-src/main/java/com/suecagame/
-├── model/        # Domínio puro: Card, Deck, DeckFactory, Trick, Game, Team, Player
-├── events/       # GameEvent (sealed) + GameEventListener (Observer)
-├── service/      # GameService (motor), estados do jogo, ai/ (bots)
-├── commands/     # Command + CommandFactory (ações dos jogadores)
-├── network/      # SuecaServer, SuecaClient, ClientHandler, Protocol
-├── controller/   # GameRules, GameSession (local e remota)
-└── ui/           # SuecaApplication, MenuView, LobbyView, GameView (JavaFX) e console/
-src/test/java/    # Testes por camada (model, controller, service, network)
-```
-
-## Roadmap
-
-- Reconexão de jogadores no multiplayer (retomar o lugar ao bot).
-- Animações e sons na mesa de jogo.
-- IA mais forte (memória das cartas jogadas).
-- Estatísticas e histórico de partidas.
+- Let a disconnected player rejoin and take their seat back from the bot
+- Card animations and sound on the desktop table
+- Smarter bots (they don't count cards yet — humans still win)
+- Match history and stats

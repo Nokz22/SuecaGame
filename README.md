@@ -1,5 +1,7 @@
 # ♠ SuecaGame ♥
 
+[![Build](https://github.com/Nokz22/SuecaGame/actions/workflows/build.yml/badge.svg)](https://github.com/Nokz22/SuecaGame/actions/workflows/build.yml)
+
 Jogo de **Sueca** — o clássico jogo de cartas português — em Java, com interface gráfica JavaFX,
 modo **single player** contra bots e **multiplayer em rede local (LAN)** até 4 jogadores.
 
@@ -19,7 +21,22 @@ modo **single player** contra bots e **multiplayer em rede local (LAN)** até 4 
   de capote) e partida à melhor de 4 jogos.
 - **Duas interfaces** — JavaFX (gráfica) e consola (com modo `--demo` totalmente automático).
 
-## Como correr
+## Como jogar
+
+### Sem instalar nada (só Java 21+)
+
+Descarrega o JAR do teu sistema na página de
+[**Releases**](https://github.com/Nokz22/SuecaGame/releases) —
+`SuecaGame-win.jar`, `SuecaGame-mac.jar` (Intel), `SuecaGame-mac-aarch64.jar`
+(Apple Silicon) ou `SuecaGame-linux.jar` — e abre-o com duplo clique ou:
+
+```bash
+java -jar SuecaGame-win.jar
+```
+
+O JavaFX já vai dentro do JAR; não é preciso instalar mais nada.
+
+### A partir do código
 
 Requisitos: **Java 21+** e **Maven**.
 

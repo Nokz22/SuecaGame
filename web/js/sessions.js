@@ -12,6 +12,13 @@ import { encodeEvent, decodeEvent, sanitizeName } from './protocol.js';
 
 const DEFAULT_BOT_DELAY = 800;
 
+// O evento de fecho do WebRTC não é fiável quando o outro lado morre
+// abruptamente (crash do separador, perda de rede). O heartbeat garante
+// a deteção: o anfitrião faz ping, os convidados respondem; silêncio
+// prolongado de qualquer um dos lados conta como queda.
+const DEFAULT_HEARTBEAT_MS = 4000;
+const DEFAULT_DROP_AFTER_MS = 15000;
+
 /** Single player: humano no lugar 0 contra 3 bots, tudo neste browser. */
 export class LocalSession {
   constructor(playerName, { demo = false, botDelay = DEFAULT_BOT_DELAY } = {}) {
@@ -78,16 +85,33 @@ export class LocalSession {
  * lhe diz respeito. Convidado que sai a meio vira bot.
  */
 export class HostSession {
-  constructor(playerName, transport, { botDelay = DEFAULT_BOT_DELAY } = {}) {
+  constructor(playerName, transport, {
+    botDelay = DEFAULT_BOT_DELAY,
+    heartbeatMs = DEFAULT_HEARTBEAT_MS,
+    dropAfterMs = DEFAULT_DROP_AFTER_MS,
+  } = {}) {
     this.mySeat = 0;
     this.isHost = true;
     this.botDelay = botDelay;
+    this.dropAfterMs = dropAfterMs;
     this.transport = transport;
     this.names = { 0: sanitizeName(playerName) };
     this.guests = {}; // seat -> connection
     this.game = null;
     this.cb = null;
     transport.onConnection(conn => this.#accept(conn));
+    this.heartbeatTimer = setInterval(() => this.#heartbeat(), heartbeatMs);
+  }
+
+  #heartbeat() {
+    for (const conn of Object.values(this.guests)) {
+      if (Date.now() - conn.lastSeen > this.dropAfterMs) {
+        conn.close();
+        this.#onGuestGone(conn);
+      } else {
+        conn.send({ t: 'ping' });
+      }
+    }
   }
 
   onEvent(cb) {
@@ -129,7 +153,11 @@ export class HostSession {
   }
 
   #accept(conn) {
-    conn.onMessage(msg => this.#onGuestMessage(conn, msg));
+    conn.lastSeen = Date.now();
+    conn.onMessage(msg => {
+      conn.lastSeen = Date.now();
+      this.#onGuestMessage(conn, msg);
+    });
     conn.onClose(() => this.#onGuestGone(conn));
   }
 
@@ -172,6 +200,7 @@ export class HostSession {
         // id malformado: ignora — o motor nunca vê a jogada
       }
     }
+    // 'pong' não precisa de tratamento: qualquer mensagem renova o lastSeen
   }
 
   #uniqueName(name) {
@@ -255,6 +284,7 @@ export class HostSession {
   }
 
   close() {
+    clearInterval(this.heartbeatTimer);
     for (const conn of Object.values(this.guests)) {
       conn.close();
     }
@@ -265,11 +295,11 @@ export class HostSession {
 
 /** Convidado online: liga-se ao anfitrião e limita-se a reagir a eventos. */
 export class GuestSession {
-  static join(playerName, connection, { timeoutMs = 10000 } = {}) {
+  static join(playerName, connection, { timeoutMs = 10000, ...opts } = {}) {
     return new Promise((resolve, reject) => {
-      const session = new GuestSession(connection);
+      const session = new GuestSession(connection, opts);
       const timer = setTimeout(() => {
-        connection.close();
+        session.close();
         reject(new Error('O anfitrião não respondeu'));
       }, timeoutMs);
 
@@ -279,14 +309,17 @@ export class GuestSession {
       };
       session.onRejected = reason => {
         clearTimeout(timer);
-        connection.close();
+        session.close();
         reject(new Error(reason));
       };
       connection.send({ t: 'join', name: sanitizeName(playerName) });
     });
   }
 
-  constructor(connection) {
+  constructor(connection, {
+    heartbeatMs = DEFAULT_HEARTBEAT_MS,
+    dropAfterMs = DEFAULT_DROP_AFTER_MS,
+  } = {}) {
     this.conn = connection;
     this.mySeat = -1;
     this.isHost = false;
@@ -295,8 +328,28 @@ export class GuestSession {
     this.pending = [];
     this.onWelcome = null;
     this.onRejected = null;
-    connection.onMessage(msg => this.#onMessage(msg));
-    connection.onClose(() => this.#deliver({ type: 'host-left' }));
+    this.left = false;
+    this.lastSeenHost = Date.now();
+    connection.onMessage(msg => {
+      this.lastSeenHost = Date.now();
+      this.#onMessage(msg);
+    });
+    connection.onClose(() => this.#hostGone());
+    this.heartbeatTimer = setInterval(() => {
+      if (Date.now() - this.lastSeenHost > dropAfterMs) {
+        this.conn.close();
+        this.#hostGone();
+      }
+    }, heartbeatMs);
+  }
+
+  #hostGone() {
+    if (this.left) {
+      return;
+    }
+    this.left = true;
+    clearInterval(this.heartbeatTimer);
+    this.#deliver({ type: 'host-left' });
   }
 
   onEvent(cb) {
@@ -320,6 +373,10 @@ export class GuestSession {
 
   #onMessage(msg) {
     if (!msg || typeof msg !== 'object') {
+      return;
+    }
+    if (msg.t === 'ping') {
+      this.conn.send({ t: 'pong' });
       return;
     }
     if (msg.t === 'welcome') {
@@ -355,6 +412,8 @@ export class GuestSession {
   }
 
   close() {
+    this.left = true; // saída voluntária: não é "o anfitrião saiu"
+    clearInterval(this.heartbeatTimer);
     this.conn.close();
   }
 }

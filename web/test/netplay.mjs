@@ -183,4 +183,44 @@ try {
 }
 assert(rejected, 'entrar com o jogo a decorrer é rejeitado');
 
+guestA.close();
+host.close();
+
+// ——— heartbeat: convidado silencioso (sem evento de fecho) vira bot ———
+
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+{
+  const h = makeHostTransport();
+  const host2 = new HostSession('Anfitrião', h.transport,
+    { botDelay: 0, heartbeatMs: 20, dropAfterMs: 100 });
+  const rawConn = h.dial();
+  const silent = await GuestSession.join('Fantasma', rawConn,
+    { heartbeatMs: 20, dropAfterMs: 100000 });
+  await flush();
+  assert(host2.names[1] === 'Fantasma', 'convidado silencioso sentou-se');
+  host2.start();
+  await flush();
+
+  // emudece sem fechar: as mensagens dele deixam de sair (crash simulado)
+  rawConn.send = () => {};
+  await sleep(300);
+  assert(host2.game.players[1].bot === true, 'convidado silencioso virou bot pelo heartbeat');
+  assert(host2.names[1].includes('(bot)'), 'roster marca o convidado silencioso como bot');
+  silent.close();
+  host2.close();
+}
+
+// ——— heartbeat: anfitrião silencioso → host-left no convidado ———
+
+{
+  const [, guestEnd] = makePipe();
+  const events = [];
+  const orphan = new GuestSession(guestEnd, { heartbeatMs: 20, dropAfterMs: 100 });
+  orphan.onEvent(e => events.push(e));
+  await sleep(300);
+  assert(events.some(e => e.type === 'host-left'),
+    'silêncio do anfitrião gera host-left no convidado');
+}
+
 console.log(`OK — multiplayer loopback completo, ${assertions} verificações.`);

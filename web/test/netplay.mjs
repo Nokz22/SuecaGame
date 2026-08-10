@@ -169,6 +169,9 @@ while (!hostView.over && safety++ < 3000) {
 }
 
 assert(hostView.over, 'a partida terminou');
+// as últimas mensagens para os convidados ainda podem estar em trânsito
+await flush();
+await flush();
 assert(host.game.players[2].bot === true, 'o Zé virou bot depois de cair');
 assert(host.names[2].includes('(bot)'), 'o roster marca o lugar do Zé como bot');
 assert(viewA.foreignHands === 0, 'a Rita NUNCA recebeu mãos de outros lugares');
@@ -204,7 +207,7 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   // emudece sem fechar: as mensagens dele deixam de sair (crash simulado)
   rawConn.send = () => {};
-  await sleep(300);
+  await sleep(600); // margem folgada para runners de CI lentos
   assert(host2.game.players[1].bot === true, 'convidado silencioso virou bot pelo heartbeat');
   assert(host2.names[1].includes('(bot)'), 'roster marca o convidado silencioso como bot');
   silent.close();
@@ -218,7 +221,7 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   const events = [];
   const orphan = new GuestSession(guestEnd, { heartbeatMs: 20, dropAfterMs: 100 });
   orphan.onEvent(e => events.push(e));
-  await sleep(300);
+  await sleep(600);
   assert(events.some(e => e.type === 'host-left'),
     'silêncio do anfitrião gera host-left no convidado');
 }

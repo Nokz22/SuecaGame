@@ -35,6 +35,8 @@ team to reach 4 game points wins the match.
   embedded in the app), the rest join with the host's IP. Empty seats are
   filled with bots, and if someone disconnects mid-game a bot takes over so
   the match can finish.
+- **Online multiplayer in the browser** — rooms with a shareable 4-letter
+  code, connected peer-to-peer over WebRTC. No accounts, no game server.
 - **Full rules**: mandatory follow-suit, trump, 10 tricks per round,
   the 1/2/4 scoring ladder and matches to 4 game points.
 - A **console version** as well, with a `--demo` mode where four bots play a
@@ -77,19 +79,40 @@ port.
 ## The browser version
 
 The [`web/`](web/) folder has a JavaScript remake of the game — same rules,
-same bot heuristics — with no build step and no dependencies: plain ES
-modules, CSS-drawn cards and an azulejo-tiled table. It deploys to GitHub
-Pages automatically on every push to `main`.
+same bot heuristics — with no build step: plain ES modules, CSS-drawn cards
+and an azulejo-tiled table. It deploys to GitHub Pages automatically on
+every push to `main`.
 
 ![Browser version](docs/screenshot-web.png)
 
-Two handy URLs: `?jogar=Name` skips the menu straight to the table, and
-`?demo` puts bots in all four seats so you can just watch a match play out.
+You can play it two ways:
 
-The web engine has its own self-play harness (`node web/test/selfplay.mjs`)
-that plays 300 complete matches and asserts the same invariants as the Java
-suite: ten tricks and exactly 120 points, every round, plus the full scoring
-ladder.
+- **Solo** against the three bots, all in your browser.
+- **Online with friends**: one player creates a room and gets a 4-letter
+  code; up to three others join with it (or with the invite link the code
+  copies). Seats left empty become bots, and anyone who drops mid-game is
+  replaced by a bot so the match finishes.
+
+Online play works without a game server. The browsers connect directly to
+each other over WebRTC data channels; the host's browser runs the
+authoritative engine and deals each player only their own hand — exactly the
+same trust model as the desktop LAN server. The only third party involved is
+PeerJS's free public broker, used once per connection for the WebRTC
+handshake; after that, no game data touches any server. The trade-offs of
+being serverless: the room lives and dies with the host's tab, and a small
+minority of very restrictive networks won't manage a direct connection.
+
+Handy URLs: `?jogar=Name` skips the menu straight to a solo table,
+`?sala=CODE` pre-fills a room invite, and `?demo` puts bots in all four
+seats so you can just watch.
+
+The web engine has two test harnesses, both plain Node with no test
+framework: `web/test/selfplay.mjs` plays 300 complete matches and asserts
+the same invariants as the Java suite (ten tricks and exactly 120 points,
+every round), and `web/test/netplay.mjs` runs a full online match through
+an in-memory transport with the same interface as the WebRTC adapter —
+covering seat assignment, hand privacy, remote play validation and the
+drop-to-bot path.
 
 ## How it's built
 

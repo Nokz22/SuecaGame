@@ -11,14 +11,25 @@ export const POINTS_TO_WIN = 4;
  * quem decide o ritmo (atrasos dos bots, pausas entre vazas) é a UI.
  */
 export class Game {
-  constructor(playerName, rng = Math.random) {
+  /**
+   * Aceita o nome do jogador humano (lugar 0, contra 3 bots) ou uma lista
+   * completa de 4 jogadores [{name, bot}] — usado pelo multiplayer online.
+   */
+  constructor(playerNameOrPlayers, rng = Math.random) {
     this.rng = rng;
-    this.players = [
-      { name: playerName || 'Jogador', bot: false },
-      { name: BOT_NAMES[0], bot: true },
-      { name: BOT_NAMES[1], bot: true },
-      { name: BOT_NAMES[2], bot: true },
-    ];
+    if (Array.isArray(playerNameOrPlayers)) {
+      if (playerNameOrPlayers.length !== 4) {
+        throw new Error('São precisos exatamente 4 jogadores');
+      }
+      this.players = playerNameOrPlayers.map(p => ({ name: p.name, bot: !!p.bot }));
+    } else {
+      this.players = [
+        { name: playerNameOrPlayers || 'Jogador', bot: false },
+        { name: BOT_NAMES[0], bot: true },
+        { name: BOT_NAMES[1], bot: true },
+        { name: BOT_NAMES[2], bot: true },
+      ];
+    }
     this.gamePoints = [0, 0]; // [nós (0+2), eles (1+3)]
     this.dealer = Math.floor(rng() * 4);
     this.listeners = [];

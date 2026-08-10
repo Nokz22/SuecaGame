@@ -49,3 +49,14 @@ export function sortHand(hand) {
 export function cardLabel(card) {
   return `${card.value.name} de ${card.suit.name}`;
 }
+
+/** Reconstrói uma carta a partir do id "NAIPE:VALOR" (protocolo de rede). */
+export function cardFromId(id) {
+  const [suitKey, valueKey] = String(id).split(':');
+  const suit = SUITS[suitKey];
+  const value = VALUES.find(v => v.key === valueKey);
+  if (!suit || !value) {
+    throw new Error('Carta inválida: ' + id);
+  }
+  return { suit, value, id: `${suit.key}:${value.key}` };
+}

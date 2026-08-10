@@ -27,6 +27,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Testar o motor
         run: node web/test/selfplay.mjs
+      - name: Testar o multiplayer (loopback)
+        run: node web/test/netplay.mjs
       - uses: actions/configure-pages@v5
         with:
           enablement: true

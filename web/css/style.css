@@ -100,11 +100,11 @@ body {
   min-height: 430px;
 }
 
-#seat-2 { grid-column: 2; grid-row: 1; }
-#seat-1 { grid-column: 1; grid-row: 2; }
+#seatbox-2 { grid-column: 2; grid-row: 1; }
+#seatbox-1 { grid-column: 1; grid-row: 2; }
 #pile   { grid-column: 2; grid-row: 2; position: relative; }
-#seat-3 { grid-column: 3; grid-row: 2; }
-#seat-0 { grid-column: 1 / -1; grid-row: 3; }
+#seatbox-3 { grid-column: 3; grid-row: 2; }
+#seatbox-0 { grid-column: 1 / -1; grid-row: 3; }
 
 .seat {
   display: flex;
@@ -221,7 +221,7 @@ body {
 
 /* ——— a minha mão ——— */
 
-#seat-0 { gap: 10px; }
+#seatbox-0 { gap: 10px; }
 
 #hand {
   display: flex;
@@ -295,6 +295,35 @@ input {
 }
 input:focus { outline: none; border-color: var(--tile-b); }
 
+.join-row { display: flex; gap: 10px; justify-content: center; }
+.join-row input { width: 110px; text-transform: uppercase; letter-spacing: 2px; }
+.join-row button { flex: 1; }
+
+.error { color: #a33327; font-size: 0.9rem; min-height: 1.2em; }
+
+#room-code {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.6rem;
+  font-weight: 700;
+  letter-spacing: 10px;
+  padding: 6px 18px 6px 28px;
+  border: 2px dashed var(--tile-b);
+  border-radius: 12px;
+  color: var(--tile-a);
+  cursor: pointer;
+  user-select: all;
+  align-self: center;
+}
+#room-code:hover { background: rgba(29, 64, 102, 0.08); }
+
+#lobby-seats { display: flex; flex-direction: column; gap: 6px; }
+.lobby-seat {
+  background: rgba(29, 64, 102, 0.08);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+}
+
 button.primary {
   font: inherit;
   font-weight: 700;
@@ -308,6 +337,19 @@ button.primary {
 }
 button.primary:hover { filter: brightness(1.08); }
 button.primary:active { transform: translateY(1px); }
+button.primary:disabled { filter: saturate(0.4) brightness(0.9); cursor: default; }
+button.primary.alt { background: linear-gradient(180deg, #2a5a8f, var(--tile-b)); }
+
+button.ghost {
+  font: inherit;
+  padding: 9px 16px;
+  border: 2px solid #c9c2ae;
+  border-radius: 10px;
+  background: transparent;
+  color: #6b7684;
+  cursor: pointer;
+}
+button.ghost:hover { border-color: #a8a08a; color: var(--ink); }
 
 /* ——— acessibilidade ——— */
 

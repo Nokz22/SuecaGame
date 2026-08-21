@@ -1,4 +1,4 @@
-import { cardFromId } from './cards.js';
+import { cardFromId } from './cards.js?v=__V__';
 
 // Eventos viajam como JSON entre anfitrião e convidados (WebRTC DataChannel).
 // As cartas são achatadas para ids "NAIPE:VALOR" e reconstruídas à chegada,

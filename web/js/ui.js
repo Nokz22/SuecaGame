@@ -1,8 +1,8 @@
-import { LocalSession, HostSession, GuestSession } from './sessions.js';
-import { createRoom, joinRoom, normalizeCode } from './net.js';
-import { cardElement } from './cardface.js';
-import { isValidPlay } from './rules.js';
-import { POINTS_TO_WIN } from './game.js';
+import { LocalSession, HostSession, GuestSession } from './sessions.js?v=__V__';
+import { createRoom, joinRoom, normalizeCode } from './net.js?v=__V__';
+import { cardElement } from './cardface.js?v=__V__';
+import { isValidPlay } from './rules.js?v=__V__';
+import { POINTS_TO_WIN } from './game.js?v=__V__';
 
 const $ = selector => document.querySelector(selector);
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));

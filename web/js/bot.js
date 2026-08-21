@@ -1,4 +1,4 @@
-import { isValidPlay, trickWinner } from './rules.js';
+import { isValidPlay, trickWinner } from './rules.js?v=__V__';
 
 // Heurísticas de Sueca (as mesmas da versão desktop):
 // - a abrir, sai com a carta mais fraca sem gastar trunfos

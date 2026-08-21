@@ -6,24 +6,28 @@
 <title>Sueca</title>
 <meta name="description" content="Joga Sueca no browser — sozinho contra bots ou online com amigos, sem instalar nada.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&display=swap">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <div id="menu" class="overlay">
-  <div class="panel">
+  <div class="panel hero">
+    <div class="hero-suits" aria-hidden="true"><span>♣</span><span class="r">♥</span><span>♠</span><span class="r">♦</span></div>
     <h1>Sueca</h1>
-    <p class="tagline">O clássico português — sozinho contra bots ou online com amigos.</p>
+    <p class="tagline">O clássico português — sozinho contra bots<br>ou online com amigos.</p>
     <input id="name" placeholder="O teu nome" maxlength="14" autocomplete="off">
-    <button id="start-single" class="primary">Jogar Sozinho (vs Bots)</button>
+    <button id="start-single" class="primary big">♣ &nbsp;Jogar Sozinho</button>
+    <div class="menu-split" aria-hidden="true"><span></span><b>online</b><span></span></div>
     <button id="start-host" class="primary alt">Criar Sala Online</button>
     <div class="join-row">
       <input id="join-code" placeholder="Código" maxlength="6" autocomplete="off">
       <button id="start-join" class="primary alt">Entrar na Sala</button>
     </div>
     <p class="error" id="menu-error"></p>
-    <p class="hint">Tens de assistir ao naipe. Ás vale 11, sete vale 10 —
-    120 pontos em cada ronda, partida à melhor de 4 jogos.</p>
+    <p class="hint">Tens de assistir ao naipe · Ás vale 11, sete vale 10<br>120 pontos por ronda · partida à melhor de 4 jogos</p>
   </div>
 </div>
 
@@ -41,16 +45,16 @@
 
 <main id="table" hidden>
   <header id="topbar">
-    <div class="team">
+    <div class="team us">
       <span class="tname">Nós</span>
       <span class="dots" id="dots-us"></span>
       <span class="pts" id="pts-us">0</span>
     </div>
     <div id="trumpbox" hidden>
-      <span class="tname">Trunfo</span>
+      <span class="trump-label">Trunfo</span>
       <span id="trumpcard"></span>
     </div>
-    <div class="team">
+    <div class="team them">
       <span class="pts" id="pts-them">0</span>
       <span class="dots" id="dots-them"></span>
       <span class="tname">Eles</span>
@@ -67,6 +71,7 @@
       <div class="backs vert" id="backs-1"></div>
     </div>
     <div id="pile">
+      <div class="spotlight" aria-hidden="true"></div>
       <div class="slot s-top" id="slot-2"></div>
       <div class="slot s-left" id="slot-1"></div>
       <div class="slot s-right" id="slot-3"></div>

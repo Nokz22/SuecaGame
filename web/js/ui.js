@@ -1,6 +1,6 @@
 import { LocalSession, HostSession, GuestSession } from './sessions.js';
 import { createRoom, joinRoom, normalizeCode } from './net.js';
-import { cardLabel } from './cards.js';
+import { cardElement } from './cardface.js';
 import { isValidPlay } from './rules.js';
 import { POINTS_TO_WIN } from './game.js';
 
@@ -264,8 +264,11 @@ function onRoundStart(event) {
   $('#round-overlay').hidden = true;
 
   const trumpEl = $('#trumpcard');
-  trumpEl.textContent = `${event.trump.value.short}${event.trump.suit.symbol}`;
-  trumpEl.classList.toggle('red', event.trump.suit.red);
+  trumpEl.innerHTML = '';
+  const mini = cardElement(event.trump);
+  mini.classList.add('mini');
+  mini.disabled = true;
+  trumpEl.append(mini);
   $('#trumpbox').hidden = false;
 
   updateRoundPoints([0, 0]);
@@ -274,7 +277,7 @@ function onRoundStart(event) {
 
 function onHand(event) {
   myHand = [...event.cards];
-  renderHand(currentSeat === session.mySeat);
+  renderHand(currentSeat === session.mySeat, { deal: true });
 }
 
 function onTurn(event) {
@@ -313,6 +316,11 @@ async function onTrick(event) {
   banner.hidden = false;
   await sleep(TRICK_PAUSE);
   banner.hidden = true;
+  // as cartas deslizam para o vencedor antes de sair da mesa
+  const pile = $('#pile');
+  pile.classList.add(`collect-p${posOfSeat(event.winnerSeat)}`);
+  await sleep(430);
+  pile.className = '';
   trickCards = [];
   for (let pos = 0; pos < 4; pos++) {
     $(`#slot-${pos}`).innerHTML = '';
@@ -397,34 +405,35 @@ function waitClick(button) {
 function renderPlate(seat) {
   const plate = $(`#plate-${posOfSeat(seat)}`);
   plate.innerHTML = '';
-  plate.append(nameOf(seat));
+  const name = session.names[seat] ?? `Lugar ${seat}`;
+  const medal = document.createElement('span');
+  medal.className = 'medal ' + (seat % 2 === usTeam() ? 'us' : 'them');
+  medal.textContent = name.charAt(0).toUpperCase();
+  const label = document.createElement('span');
+  label.className = 'pname';
+  label.textContent = nameOf(seat);
+  plate.append(medal, label);
   if (seat === dealerSeat) {
     const tag = document.createElement('span');
     tag.className = 'dealer-tag';
-    tag.textContent = ' · dá as cartas';
+    tag.textContent = '· dá as cartas';
     plate.append(tag);
   }
 }
 
-function cardElement(card) {
-  const el = document.createElement('button');
-  el.type = 'button';
-  el.className = 'card ' + (card.suit.red ? 'red' : 'black');
-  el.dataset.id = card.id;
-  el.setAttribute('aria-label', cardLabel(card));
-  el.innerHTML =
-    `<span class="corner tl">${card.value.short}<i>${card.suit.symbol}</i></span>` +
-    `<span class="pip">${card.suit.symbol}</span>` +
-    `<span class="corner br">${card.value.short}<i>${card.suit.symbol}</i></span>`;
-  return el;
-}
-
-function renderHand(myTurn) {
+function renderHand(myTurn, { deal = false } = {}) {
   const hand = $('#hand');
   hand.innerHTML = '';
   const leadCard = trickCards.length ? trickCards[0] : null;
-  for (const card of myHand) {
+  const n = myHand.length;
+  myHand.forEach((card, i) => {
     const el = cardElement(card);
+    // leque: cada carta conhece a sua posição para rodar/subir em CSS
+    el.style.setProperty('--i', i);
+    el.style.setProperty('--n', n);
+    if (deal) {
+      el.classList.add('deal');
+    }
     const legal = isValidPlay(card, myHand, leadCard);
     el.disabled = !myTurn || !legal;
     el.addEventListener('click', () => {
@@ -434,7 +443,7 @@ function renderHand(myTurn) {
       }
     });
     hand.append(el);
-  }
+  });
 }
 
 function renderBacks(seat) {

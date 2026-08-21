@@ -1,6 +1,6 @@
-import { makeDeck, shuffle, sortHand } from './cards.js';
-import { isValidPlay, trickWinner, trickPoints, gamePointsFor } from './rules.js';
-import { chooseBotCard } from './bot.js';
+import { makeDeck, shuffle, sortHand } from './cards.js?v=__V__';
+import { isValidPlay, trickWinner, trickPoints, gamePointsFor } from './rules.js?v=__V__';
+import { chooseBotCard } from './bot.js?v=__V__';
 
 export const BOT_NAMES = ['Beatriz', 'Manel', 'Rosa'];
 export const POINTS_TO_WIN = 4;

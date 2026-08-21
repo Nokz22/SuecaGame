@@ -1,6 +1,6 @@
-import { Game, BOT_NAMES } from './game.js';
-import { cardFromId } from './cards.js';
-import { encodeEvent, decodeEvent, sanitizeName } from './protocol.js';
+import { Game, BOT_NAMES } from './game.js?v=__V__';
+import { cardFromId } from './cards.js?v=__V__';
+import { encodeEvent, decodeEvent, sanitizeName } from './protocol.js?v=__V__';
 
 // A UI fala sempre com uma sessão e não sabe se o jogo é local, hospedado
 // por este browser ou remoto. Todas entregam o mesmo fluxo de eventos,

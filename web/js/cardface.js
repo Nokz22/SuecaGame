@@ -1,6 +1,6 @@
 // Faces de cartas desenhadas à mão: pips clássicos para as cartas numéricas,
 // medalhões ornamentados para as figuras. Tudo DOM + SVG inline, sem imagens.
-import { cardLabel } from './cards.js';
+import { cardLabel } from './cards.js?v=__V__';
 
 // posições [x%, y%, rodado?] seguindo os arranjos clássicos de baralho
 const PIP_LAYOUTS = {
